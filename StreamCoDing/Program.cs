@@ -19,6 +19,13 @@ builder.Services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
 //builder.Services.AddSingleton<IItemsRepository, InMemItemsRepository>();
 var app = builder.Build();
 
+app.UseCors(policy =>
+{
+    policy.AllowAnyOrigin()
+          .AllowAnyMethod()
+          .AllowAnyHeader();
+});
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
