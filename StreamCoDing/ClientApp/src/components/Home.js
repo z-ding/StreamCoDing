@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 
 const Home = () => {
   const[problem, problem_setter] = React.useState([])
@@ -9,7 +10,7 @@ const Home = () => {
             problem_setter(data)
         })
   }, [])
-
+  console.log(problem)
  
     return (
       <div>
@@ -23,7 +24,11 @@ const Home = () => {
         <p>Below are some sample problems in our database:</p>
         <ul>
             {problem.map(item => (
-                <li key={item.id}>{item.name}</li>
+                <li key={item.id}>
+                    <Link to={`/problem/${item.id}`}>
+                        {item.name}
+                    </Link>
+                </li>
             ))}
         </ul>       
         <p>The <code>ClientApp</code> subdirectory is a standard React application based on the <code>create-react-app</code> template. If you open a command prompt in that directory, you can run <code>npm</code> commands such as <code>npm test</code> or <code>npm install</code>.</p>
