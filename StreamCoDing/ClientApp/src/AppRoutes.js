@@ -8,7 +8,7 @@ const AppRoutes = [
     element: <Home />
   },
   {
-    path: '/Counter',
+    path: '/ContributeProb',
     element: <Counter />
   },
   {

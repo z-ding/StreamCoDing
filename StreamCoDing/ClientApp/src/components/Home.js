@@ -9,7 +9,7 @@ const Home = () => {
             problem_setter(data)
         })
   }, [])
-console.log(problem)
+
  
     return (
       <div>
