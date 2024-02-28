@@ -16,3 +16,17 @@ html {
 .box-shadow {
   box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
 }
+
+.deleteButton {
+    margin-left: 10px; /* Add some margin to the left to separate it from the problem name */
+    font-size: 14px; /* Adjust the font size to make it smaller */
+    padding: 4px 8px; /* Add padding to make the button smaller */
+    border: 1px solid #ccc; /* Add border for better visibility */
+    background-color: #fff; /* Set background color */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+    /* Style the delete button on hover */
+    .deleteButton:hover {
+        background-color: #f0f0f0; /* Change background color on hover */
+    }

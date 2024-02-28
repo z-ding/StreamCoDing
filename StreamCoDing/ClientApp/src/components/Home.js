@@ -10,8 +10,21 @@ const Home = () => {
             problem_setter(data)
         })
   }, [])
-  console.log(problem)
- 
+
+    const handleDelete = (id) => {
+        fetch(`https://localhost:7011/items/${id}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (response.ok) {
+                    // If deletion is successful, remove the problem from the state
+                    problem_setter(problem.filter(problem => problem.id !== id));
+                } else {
+                    console.error('Failed to delete problem');
+                }
+            })
+            .catch(error => console.error("Error deleting problem:", error));
+    };
     return (
       <div>
         <h1>Welcome to StreamCoDing!</h1>
@@ -28,6 +41,7 @@ const Home = () => {
                     <Link to={`/problem/${item.id}`}>
                         {item.name}
                     </Link>
+                    <button className="deleteButton" onClick={() => handleDelete(item.id)}>Delete</button>
                 </li>
             ))}
         </ul>       
