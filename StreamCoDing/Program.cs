@@ -16,6 +16,7 @@ builder.Services.AddSingleton<IMongoClient>(ServiceProvider => {
 });
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
+builder.Services.AddSingleton<IPeopleRepository, MongoDbPeopleRepository>();
 //builder.Services.AddSingleton<IItemsRepository, InMemItemsRepository>();
 var app = builder.Build();
 

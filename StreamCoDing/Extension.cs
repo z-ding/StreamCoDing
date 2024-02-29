@@ -17,5 +17,17 @@ namespace StreamCoDing
                 CreatedDate = item.CreatedDate
             };
         }
+
+        public static PeopleDto AsDto(this People person)
+        {
+            return new PeopleDto
+            {
+                Id = person.Id,
+                Name = person.Name,
+                Rating = person.Rating,
+                CreatedDate = person.CreatedDate
+            };
+        }
     }
+
 }
