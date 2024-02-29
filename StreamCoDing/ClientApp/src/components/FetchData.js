@@ -1,59 +1,55 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
-export class FetchData extends Component {
-  static displayName = FetchData.name;
+const FetchData = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        // Add other form fields as necessary
+    });
+    const [submissionStatus, setSubmissionStatus] = useState(null); // State to track submission status
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-  constructor(props) {
-    super(props);
-    this.state = { forecasts: [], loading: true };
-  }
-
-  componentDidMount() {
-    this.populateWeatherData();
-  }
-
-  static renderForecastsTable(forecasts) {
-    return (
-      <table className='table table-striped' aria-labelledby="tabelLabel">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
-          </tr>
-        </thead>
-        <tbody>
-          {forecasts.map(forecast =>
-            <tr key={forecast.date}>
-              <td>{forecast.date}</td>
-              <td>{forecast.temperatureC}</td>
-              <td>{forecast.temperatureF}</td>
-              <td>{forecast.summary}</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    );
-  }
-
-  render() {
-    let contents = this.state.loading
-      ? <p><em>Loading...</em></p>
-      : FetchData.renderForecastsTable(this.state.forecasts);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('https://localhost:7011/people/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            setSubmissionStatus('success'); // Set submission status to success
+            console.log('Data sent successfully!');
+            // Optionally, handle success response
+        } catch (error) {
+            console.error('Error sending data:', error);
+            setSubmissionStatus('error'); // Set submission status to error
+            // Optionally, handle error response
+        }
+    };
 
     return (
-      <div>
-        <h1 id="tabelLabel" >Weather forecast</h1>
-        <p>This component demonstrates fetching data from the server.</p>
-        {contents}
-      </div>
+        <div>
+            <form onSubmit={handleSubmit}>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.Name}
+                    onChange={handleChange}
+                    placeholder="XYZ"
+                />
+                {/* Add other form fields as necessary */}
+                <button type="submit">Submit</button>
+            </form>
+            {submissionStatus === 'success' && <p>Submission successful!</p>}
+            {submissionStatus === 'error' && <p>Submission failed. Please try again.</p>}
+        </div>
     );
-  }
+};
 
-  async populateWeatherData() {
-    const response = await fetch('weatherforecast');
-    const data = await response.json();
-    this.setState({ forecasts: data, loading: false });
-  }
-}
+export default FetchData;

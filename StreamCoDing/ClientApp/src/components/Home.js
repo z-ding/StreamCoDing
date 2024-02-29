@@ -11,6 +11,16 @@ const Home = () => {
         })
   }, [])
 
+  //users that want to join lc dashboard
+    const [people, people_setter] = React.useState([])
+    React.useEffect(() => {
+        fetch("https://localhost:7011/people/")
+            .then(res => res.json())
+            .then(data => {
+                people_setter(data)
+            })
+    }, [])
+
     const handleDelete = (id) => {
         fetch(`https://localhost:7011/items/${id}`, {
             method: 'DELETE',
@@ -44,7 +54,18 @@ const Home = () => {
                     <button className="deleteButton" onClick={() => handleDelete(item.id)}>Delete</button>
                 </li>
             ))}
-        </ul>       
+        </ul> 
+        <p>Leaderboard</p>
+        <ul>
+            {people.map(item => (
+                <li key={item.id}>
+                    <Link to={`/problem/${item.id}`}>
+                        {item.name}
+                    </Link>
+                    <button className="deleteButton" onClick={() => handleDelete(item.id)}>Delete</button>
+                </li>
+            ))}
+        </ul> 
         <p>The <code>ClientApp</code> subdirectory is a standard React application based on the <code>create-react-app</code> template. If you open a command prompt in that directory, you can run <code>npm</code> commands such as <code>npm test</code> or <code>npm install</code>.</p>
       </div>
     );

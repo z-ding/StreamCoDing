@@ -1,7 +1,8 @@
 import Counter from "./components/Counter";
-import { FetchData } from "./components/FetchData";
+import  FetchData  from "./components/FetchData";
 import Home from "./components/Home";
 import ProblemDetail from "./components/ProblemDetail"; // Import ProblemDetail component
+import PeopleDetail from "./components/PeopleDetail"; // Import ProblemDetail component
 
 const AppRoutes = [
     {
@@ -15,14 +16,19 @@ const AppRoutes = [
     element: <Counter />
   },
     {
-    key: 'fetch-data',
-    path: '/fetch-data',
+    key: 'AddMe',
+    path: '/AddMe',
     element: <FetchData />
    },
     {
     key: 'problem-detail',
     path: '/problem/:id', // Define route for problem details
     element: <ProblemDetail />
+    },
+    {
+        key: 'people-detail',
+        path: '/people/:id', // Define route for problem details
+        element: <PeopleDetail />
     }
 ];
 
