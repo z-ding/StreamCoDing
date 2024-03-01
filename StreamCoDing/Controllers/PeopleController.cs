@@ -3,6 +3,9 @@ using StreamCoding.Dtos;
 using StreamCoDing.Dtos;
 using StreamCoDing.Entities;
 using StreamCoDing.Repositories;
+using System.Net.Http;
+using System.Text.Json;
+
 
 namespace StreamCoDing.Controllers
 {
@@ -44,11 +47,38 @@ namespace StreamCoDing.Controllers
         [HttpPost]
         public async Task<ActionResult<PeopleDto>> CreatePeopleAsync(CreatePeopleDto PeopleDto)
         {
+            int ranking = 0;
+            try
+            {
+                //fetch user's ranking from leetcode API
+                string baseUrl = "https://leetcode-stats-api.herokuapp.com";
+                string apiUrl = $"{baseUrl}/{PeopleDto.Name}";
+                // Make a GET request to fetch the ranking from the API
+                HttpClient _httpClient = new HttpClient();
+                HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+
+                // Ensure the request was successful
+                response.EnsureSuccessStatusCode();
+
+                // Read the response content as a string
+                using Stream responseStream = await response.Content.ReadAsStreamAsync();
+                using JsonDocument jsonDocument = await JsonDocument.ParseAsync(responseStream);
+                // Parse the response body to get the ranking
+                // Assuming the response body contains ranking information in JSON format
+                JsonElement root = jsonDocument.RootElement;
+                ranking = root.GetProperty("ranking").GetInt32();
+            }
+            catch (HttpRequestException ex)
+            {
+                // Log or handle any errors that occur during the HTTP request
+                Console.WriteLine($"Error fetching ranking: {ex.Message}");
+            }
             People People = new()
             {
                 Id = Guid.NewGuid(),
                 Name = PeopleDto.Name,
-                CreatedDate = DateTimeOffset.UtcNow
+                CreatedDate = DateTimeOffset.UtcNow,
+                Rating = ranking
             };
             await repository.CreatePeopleAsync(People);
             //convention for return: specify where you can get the People created in the return, how (id) and the actual People dto object

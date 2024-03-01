@@ -30,3 +30,15 @@ html {
     .deleteButton:hover {
         background-color: #f0f0f0; /* Change background color on hover */
     }
+.container {
+    display: flex;
+}
+
+.left,
+.right {
+    flex: 1;
+}
+
+.right {
+    margin-left: 20px; /* Adjust margin as needed */
+}
