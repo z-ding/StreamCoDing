@@ -20,6 +20,8 @@ const Home = () => {
                 people_setter(data)
             })
     }, [])
+    // Sort people by their rating in ascending order
+    const sortedPeople = people.slice().sort((a, b) => a.rating - b.rating);
 
     const handleDelete = (id) => {
         fetch(`https://localhost:7011/items/${id}`, {
@@ -61,10 +63,10 @@ const Home = () => {
                 <div class="right">
                     <p>Leaderboard</p>
                     <ul>
-                        {people.map(item => (
+                        {sortedPeople.map(item => (
                             <li key={item.name}>
                                 <Link to={`/people/${item.name}`}>
-                                    {item.name}
+                                    {item.name} Ranking: {item.rating}
                                 </Link>
                             </li>
                         ))}

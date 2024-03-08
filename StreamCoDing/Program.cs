@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using StreamCoDing.Repositories;
 using StreamCoDing.Settings;
+using StreamCoDing.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddSingleton<IMongoClient>(ServiceProvider => {
     return new MongoClient(settings.ConnectionString);
 });
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<CppController>();
 builder.Services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
 builder.Services.AddSingleton<IPeopleRepository, MongoDbPeopleRepository>();
 //builder.Services.AddSingleton<IItemsRepository, InMemItemsRepository>();

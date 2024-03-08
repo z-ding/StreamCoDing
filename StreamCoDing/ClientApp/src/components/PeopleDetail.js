@@ -4,7 +4,7 @@ import { Chart } from 'react-chartjs-2'
 import { Chart as ChartJS } from 'chart.js/auto'
 function PeopleDetail() {
     const { id } = useParams();
-    const [leetcode, leetcode_setter] = React.useState({ easy: 0, medidum: 0, hard: 0, acceptance: 0, submission_date: [], submission_amt: [] })
+    const [leetcode, leetcode_setter] = React.useState({ ranking:0,easy: 0, medidum: 0, hard: 0, acceptance: 0, submission_date: [], submission_amt: [] })
     React.useEffect(() => {
         fetch(`https://leetcode-stats-api.herokuapp.com/${id}`)
             .then(res => res.json())
@@ -18,6 +18,7 @@ function PeopleDetail() {
                     s_a.push(data.submissionCalendar[key])
                 }
                 leetcode_setter({
+                    ranking:data.ranking,
                     easy: data.easySolved,
                     medium: data.mediumSolved,
                     hard: data.hardSolved,
@@ -54,6 +55,7 @@ function PeopleDetail() {
     return (
         <div>
             <h2>{id}</h2>
+            <h5> Ranking: {leetcode.ranking} </h5>
             <h5> Acceptance Rate: {leetcode.acceptance} </h5>
             <h5> Easy: {leetcode.easy} </h5>
             <h5> Medium: {leetcode.medium} </h5>
