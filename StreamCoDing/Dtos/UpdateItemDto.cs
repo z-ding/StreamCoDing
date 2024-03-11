@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static StreamCoDing.Entities.Item;
+
 namespace StreamCoDing.Dtos
 {
     public record UpdateItemDto
@@ -13,5 +15,6 @@ namespace StreamCoDing.Dtos
         [Required]
         [Range(1, 1000)]
         public int Number { get; init; }
+        public List<TestCase> TestCases { get; init; }
     }
 }

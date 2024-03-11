@@ -8,6 +8,13 @@
         public string Type { get; init; }
         public string Description { get; init; }
         public DateTimeOffset CreatedDate { get; init; }
+        public List<TestCase> TestCases { get; init; }
+        public class TestCase
+        {
+            public string Input { get; set; }
+            public string ExpectedOutput { get; set; }
+        }
+
     }
 
 }

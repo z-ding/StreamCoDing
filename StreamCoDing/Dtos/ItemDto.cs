@@ -1,4 +1,5 @@
 ﻿using System;
+using static StreamCoDing.Entities.Item;
 //dto is the data transfer object, which is a contract with the client about the data transfer
 namespace StreamCoding.Dtos
 {
@@ -10,5 +11,6 @@ namespace StreamCoding.Dtos
         public string Description { get; init; }
         public int Number { get; init; }
         public DateTimeOffset CreatedDate { get; init; }
+        public List<TestCase> TestCases { get; init; }
     }
 }

@@ -51,7 +51,8 @@ namespace StreamCoDing.Controllers
                 Type = itemDto.Type,
                 Description = itemDto.Description,
                 Number = itemDto.Number,
-                CreatedDate = DateTimeOffset.UtcNow
+                CreatedDate = DateTimeOffset.UtcNow,
+                TestCases = itemDto.TestCases
             };
             await repository.CreateItemAsync(item);
             //convention for return: specify where you can get the item created in the return, how (id) and the actual item dto object

@@ -14,7 +14,8 @@ namespace StreamCoDing
                 Type = item.Type,
                 Description = item.Description,
                 Number = item.Number,
-                CreatedDate = item.CreatedDate
+                CreatedDate = item.CreatedDate,
+                TestCases = item.TestCases
             };
         }
 

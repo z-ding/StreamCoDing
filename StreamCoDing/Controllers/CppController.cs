@@ -12,6 +12,12 @@ namespace StreamCoDing.Controllers
         public string CppCode { get; set; }
     }
 
+    public class CppExecutionResult
+    {
+        public string StandardOutput { get; set; }
+        public int ReturnValue { get; set; }
+    }
+
     [ApiController]
     [Route("cppCompiler")]
     public class CppController : ControllerBase
@@ -28,9 +34,9 @@ namespace StreamCoDing.Controllers
         {
             try
             {
-                if (input == null || string.IsNullOrEmpty(input.CppCode))
+                if (input == null || string.IsNullOrWhiteSpace(input.CppCode))
                 {
-                    return BadRequest("No C++ code provided.");
+                    return BadRequest("No valid C++ code provided.");
                 }
 
                 _logger.LogInformation("Received request with payload: {cppCode}", input.CppCode);
@@ -42,19 +48,21 @@ namespace StreamCoDing.Controllers
 
                 using (Process process = new Process())
                 {
-                    process.StartInfo.FileName = "g++";
+                    process.StartInfo.FileName = "C:\\MinGW\\bin\\g++"; // Update this with the correct path to g++
                     process.StartInfo.Arguments = $"-o {executableFile} {tempFile}";
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true; // Redirect standard error to capture compilation errors
 
                     process.Start();
+                    string compilationErrorOutput = await process.StandardError.ReadToEndAsync(); // Read compilation errors
                     await process.WaitForExitAsync();
-                }
 
-                // Check if compilation was successful
-                if (!System.IO.File.Exists(executableFile))
-                {
-                    return BadRequest("Compilation failed.");
+                    // Check if compilation was successful
+                    if (!System.IO.File.Exists(executableFile) || !string.IsNullOrWhiteSpace(compilationErrorOutput))
+                    {
+                        return BadRequest($"Compilation failed. Error output: {compilationErrorOutput}");
+                    }
                 }
 
                 // Execute compiled C++ code
@@ -67,11 +75,19 @@ namespace StreamCoDing.Controllers
                 string output = await executionProcess.StandardOutput.ReadToEndAsync();
                 executionProcess.WaitForExit();
 
+                int returnValue = executionProcess.ExitCode; // Capture return value
+
                 // Clean up temporary files
                 System.IO.File.Delete(tempFile);
                 System.IO.File.Delete(executableFile);
 
-                return Ok(output);
+                var executionResult = new CppExecutionResult
+                {
+                    StandardOutput = output,
+                    ReturnValue = returnValue
+                };
+
+                return Ok(executionResult);
             }
             catch (Exception ex)
             {
@@ -79,5 +95,6 @@ namespace StreamCoDing.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
     }
 }
