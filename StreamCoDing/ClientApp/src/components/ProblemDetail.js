@@ -58,7 +58,6 @@ function ProblemDetail() {
             for (const testCase of threeTestCases) {
                 try {
                     let modifiedCode = cppCode.replace(/inputParameter/g, testCase.input);
-                    console.log(modifiedCode);
                     const response = await fetch('https://localhost:7011/cppCompiler', {
                         method: 'POST',
                         headers: {
@@ -70,19 +69,30 @@ function ProblemDetail() {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     const data = await response.json();
-                    res.push(data);
+                    
+                    // Compare return value with expected output
+                    const isAccepted = data.returnValue === testCase.expectedReturnValue;
+                    res.push({ standardOutput: data.standardOutput, returnValue: data.returnValue, isAccepted: isAccepted }); // Store result along with acceptance status
                 } catch (error) {
-                    console.error('Error executing test case:', error);
-                    return false;
+                    if (error.message === 'Execution timed out.') {
+                        // Handle timeout error here
+                        res.push({ error: 'Execution timed out', isAccepted: false });
+                    } else {
+                        res.push({ error: error.message, isAccepted: false });
+                    }
                 }
             }
             setThreeExecutionResult(res);
+            console.log(threeExecutionResult);
         } catch (error) {
             console.error('Error executing test cases:', error);
         } finally {
             setLoading(false);
         }
     };
+
+
+
 
     const handleTestCaseExecution = async (testCase) => {
         try {
@@ -97,6 +107,7 @@ function ProblemDetail() {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
+            
             // Check if the execution result matches the expected output
             const isAccepted = data.standardOutput.trim() === testCase.expectedOutput.trim();
             if (!isAccepted) {
@@ -135,10 +146,18 @@ function ProblemDetail() {
                             {threeExecutionResult[index] && (
                                 <div>
                                     <h5>Execution Result:</h5>
-                                    <p>Standard Output: {threeExecutionResult[index].standardOutput}</p>
-                                    <p>Return Value: {threeExecutionResult[index].returnValue}</p>
+                                    {threeExecutionResult[index].error ? (
+                                        <p>Error: {threeExecutionResult[index].error}</p>
+                                    ) : (
+                                        <div>
+                                            <p>Standard Output: {threeExecutionResult[index].standardOutput}</p>
+                                            <p>Return Value: {threeExecutionResult[index].returnValue}</p>
+                                            <p>Result: {threeExecutionResult[index].isAccepted ? "Accepted" : "Wrong Answer"}</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
+
                         </div>
                     ))}
                 </div>

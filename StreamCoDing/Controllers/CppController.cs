@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace StreamCoDing.Controllers
 {
@@ -65,29 +65,49 @@ namespace StreamCoDing.Controllers
                     }
                 }
 
-                // Execute compiled C++ code
-                Process executionProcess = new Process();
-                executionProcess.StartInfo.FileName = executableFile;
-                executionProcess.StartInfo.UseShellExecute = false;
-                executionProcess.StartInfo.RedirectStandardOutput = true;
-                executionProcess.Start();
-
-                string output = await executionProcess.StandardOutput.ReadToEndAsync();
-                executionProcess.WaitForExit();
-
-                int returnValue = executionProcess.ExitCode; // Capture return value
-
-                // Clean up temporary files
-                System.IO.File.Delete(tempFile);
-                System.IO.File.Delete(executableFile);
-
-                var executionResult = new CppExecutionResult
+                // Execute compiled C++ code with a timeout
+                using (var cts = new System.Threading.CancellationTokenSource())
                 {
-                    StandardOutput = output,
-                    ReturnValue = returnValue
-                };
+                    cts.CancelAfter(TimeSpan.FromSeconds(1)); // Set timeout to 1 second
 
-                return Ok(executionResult);
+                    var executionProcess = new Process();
+                    executionProcess.StartInfo.FileName = executableFile;
+                    executionProcess.StartInfo.UseShellExecute = false;
+                    executionProcess.StartInfo.RedirectStandardOutput = true;
+
+                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+                    var executionTask = Task.Run(() =>
+                    {
+                        executionProcess.Start();
+                        string output = executionProcess.StandardOutput.ReadToEnd();
+                        executionProcess.WaitForExit();
+
+                        int returnValue = executionProcess.ExitCode; // Capture return value
+
+                        // Clean up temporary files
+                        System.IO.File.Delete(tempFile);
+                        System.IO.File.Delete(executableFile);
+
+                        var executionResult = new CppExecutionResult
+                        {
+                            StandardOutput = output,
+                            ReturnValue = returnValue
+                        };
+
+                        return executionResult;
+                    });
+
+                    // Wait for either execution to complete or timeout
+                    await Task.WhenAny(executionTask, timeoutTask);
+
+                    if (!executionTask.IsCompleted)
+                    {
+                        // Timeout occurred
+                        return BadRequest("Execution timed out.");
+                    }
+
+                    return Ok(await executionTask);
+                }
             }
             catch (Exception ex)
             {
@@ -95,6 +115,5 @@ namespace StreamCoDing.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
     }
 }
