@@ -83,7 +83,7 @@ function ProblemDetail() {
                 }
             }
             setThreeExecutionResult(res);
-            console.log(threeExecutionResult);
+            //console.log(threeExecutionResult);
         } catch (error) {
             console.error('Error executing test cases:', error);
         } finally {
