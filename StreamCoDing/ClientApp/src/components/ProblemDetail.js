@@ -55,7 +55,7 @@ function ProblemDetail() {
         setLoading(true);
         try {
             const res = [];
-            for (const testCase of threeTestCases) {
+            for (const [index, testCase] of threeTestCases.entries()) {
                 try {
                     let modifiedCode = cppCode.replace(/inputParameter/g, testCase.input);
                     const response = await fetch('https://localhost:7011/cppCompiler', {
@@ -63,16 +63,13 @@ function ProblemDetail() {
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ CppCode: modifiedCode })
+                        body: JSON.stringify({ CppCode: modifiedCode, ProblemID: id, testCaseIdx: index })
                     });
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     const data = await response.json();
-                    
-                    // Compare return value with expected output
-                    const isAccepted = data.returnValue === testCase.expectedReturnValue;
-                    res.push({ standardOutput: data.standardOutput, returnValue: data.returnValue, isAccepted: isAccepted }); // Store result along with acceptance status
+                    res.push({ ...data }); // Store result along with acceptance status
                 } catch (error) {
                     if (error.message === 'Execution timed out.') {
                         // Handle timeout error here
@@ -83,7 +80,6 @@ function ProblemDetail() {
                 }
             }
             setThreeExecutionResult(res);
-            //console.log(threeExecutionResult);
         } catch (error) {
             console.error('Error executing test cases:', error);
         } finally {
@@ -151,7 +147,7 @@ function ProblemDetail() {
                                     ) : (
                                         <div>
                                             <p>Standard Output: {threeExecutionResult[index].standardOutput}</p>
-                                            <p>Return Value: {threeExecutionResult[index].returnValue}</p>
+                                            <p>Executed result: {threeExecutionResult[index].codeOutput}</p>
                                             <p>Result: {threeExecutionResult[index].isAccepted ? "Accepted" : "Wrong Answer"}</p>
                                         </div>
                                     )}
@@ -167,3 +163,40 @@ function ProblemDetail() {
 }
 
 export default ProblemDetail;
+/*
+front end code to test
+#include <iostream>
+#include <vector>
+
+int main() {
+    int n = inputParameter;
+    std::vector<bool> isPrime(n + 1, true); // Initialize all numbers as prime
+    std::vector<int> res;
+    isPrime[0] = isPrime[1] = false; // 0 and 1 are not prime
+
+    for (int i = 2; i * i <= n; ++i) {
+        if (isPrime[i]) { // If i is prime
+            for (int j = i * i; j <= n; j += i) {
+                isPrime[j] = false; // Mark multiples of i as not prime
+            }
+        }
+    }
+
+    for (int i = 2; i <= n; ++i) {
+        if (isPrime[i]) {
+            res.push_back(i); // Store prime numbers in the vector
+        }
+    }
+    
+    // Print the res vector elements separated by commas
+    for (size_t i = 0; i < res.size(); ++i) {
+        std::cout << res[i];
+        if (i < res.size() - 1) {
+            std::cout << ",";
+        }
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}
+*/ 

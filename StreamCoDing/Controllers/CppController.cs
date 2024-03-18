@@ -12,6 +12,7 @@ namespace StreamCoDing.Controllers
     {
         public string CppCode { get; set; }
         public string ProblemID { get; set; } // Add property for problemID
+        public int testCaseIdx { get; set; } // idx of testcase
     }
 
     public class CppExecutionResult
@@ -20,6 +21,7 @@ namespace StreamCoDing.Controllers
         public int ReturnValue { get; set; }
         public string CodeOutput { get; set; }
         public string expectedOutput { get; set; }
+        public bool isAccepted { get; set; }
     }
 
     [ApiController]
@@ -85,7 +87,6 @@ namespace StreamCoDing.Controllers
                 return BadRequest("Invalid problemID format.");
             }
             var problem = await repository.GetItemAsync(problemGuid);
-            var isAccepted = problem.TestCases[0].ExpectedOutput == string.Join(",", res); // Assuming res is a vector<int> converted to a string
             try
             {             
                 if (input == null || string.IsNullOrWhiteSpace(input.CppCode))
@@ -135,6 +136,7 @@ namespace StreamCoDing.Controllers
                         executionProcess.Start();
                         string output = executionProcess.StandardOutput.ReadToEnd();
                         res = ParseResVector(output);
+                        var isAccepted = problem.TestCases[input.testCaseIdx].ExpectedOutput == string.Join(",", res); // Assuming res is a vector<int> converted to a string
                         executionProcess.WaitForExit();
                         int returnValue = executionProcess.ExitCode; // Capture return value
 
@@ -146,7 +148,8 @@ namespace StreamCoDing.Controllers
                             StandardOutput = output,
                             ReturnValue = returnValue,
                             CodeOutput = res,
-                            expectedOutput = problem.TestCases[0].ExpectedOutput
+                            expectedOutput = problem.TestCases[input.testCaseIdx].ExpectedOutput,
+                            isAccepted = isAccepted
                         };
 
                         return executionResult;
