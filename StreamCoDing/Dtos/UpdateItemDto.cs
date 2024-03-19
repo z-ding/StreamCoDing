@@ -15,6 +15,7 @@ namespace StreamCoDing.Dtos
         [Required]
         [Range(1, 1000)]
         public int Number { get; init; }
+        [Required]
         public List<TestCase> TestCases { get; init; }
     }
 }

@@ -11,33 +11,10 @@ function ProblemDetail() {
     const [testCases, setTestCases] = useState([]);
     const [threeExecutionResult, setThreeExecutionResult] = useState(Array(3).fill(null));
     const [threeTestCases, setThreeTestCases] = useState([]);
+    const [runMode, setRunMode] = useState('all'); // 'all' or 'firstThree'
 
     const handleCodeChange = (event) => {
         setCppCode(event.target.value);
-    };
-
-    const handleSubmitAllCases = async () => {
-        setError('');
-        setLoading(true);
-        try {
-            const response = await fetch('https://localhost:7011/cppCompiler', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ CppCode: cppCode })
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
-            setExecutionResult(data);
-        } catch (error) {
-            setError(`Error executing C++ code: ${error.message}`);
-            setExecutionResult(null); // Clear execution result on error
-        } finally {
-            setLoading(false);
-        }
     };
 
     useEffect(() => {
@@ -53,6 +30,7 @@ function ProblemDetail() {
 
     const handleRunFirstThreeCases = async () => {
         setLoading(true);
+        setRunMode('firstThree');
         try {
             const res = [];
             for (const [index, testCase] of threeTestCases.entries()) {
@@ -90,29 +68,50 @@ function ProblemDetail() {
 
 
 
-    const handleTestCaseExecution = async (testCase) => {
+    const handleSubmitAllCases = async (testCase) => {
+        setRunMode('all');
+        setLoading(true);
         try {
-            const response = await fetch('https://localhost:7011/cppCompiler', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ CppCode: cppCode, Input: testCase.input })
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+            for (const [index, testCase] of testCases.entries()) {
+                try {
+                    let modifiedCode = cppCode.replace(/inputParameter/g, testCase.input);
+                    const response = await fetch('https://localhost:7011/cppCompiler', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ CppCode: modifiedCode, ProblemID: id, testCaseIdx: index })
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.isAccepted === false) {
+                        setExecutionResult({ Result: "Wrong Answer", isAccepted: false, lastExecutedTestcase: testCase.input, executionResult: data.codeOutput, expectedOutput: data.expectedOutput, firstDiff: data.firstDiff });
+                        /*for debugging
+                         for (var i = 0; i < data.codeOutput.size(); i++) {
+                            if (data.codeOutput[i] !== testCase.expectedOutput[i]) {
+                                console.log(data.codeOutput[i]);
+                            }
+                        }                       
+                        */
+
+                        return;
+                    }
+                } catch (error) {
+                    if (error.message === 'Execution timed out.') {
+                        // Handle timeout error here
+                        setExecutionResult({ error: 'Execution timed out', isAccepted: false });
+                    } else {
+                        setExecutionResult({ error: error.message, isAccepted: false });
+                    }
+                }
             }
-            const data = await response.json();
-            
-            // Check if the execution result matches the expected output
-            const isAccepted = data.standardOutput.trim() === testCase.expectedOutput.trim();
-            if (!isAccepted) {
-                console.error('Test case failed:', testCase);
-            }
-            return isAccepted;
+            setExecutionResult({ Result: "Accepted", isAccepted: true });
         } catch (error) {
-            console.error('Error executing test case:', error);
-            return false;
+            console.error('Error executing test cases:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -133,30 +132,47 @@ function ProblemDetail() {
                 <button onClick={handleSubmitAllCases}>Submit for All Test Cases</button>
                 {loading && <p>Loading...</p>}
                 {error && !executionResult && <p>{error}</p>}
-                <div style={{ marginTop: '20px' }}>
-                    {threeTestCases.map((testCase, index) => (
-                        <div key={index} style={{ marginBottom: '20px' }}>
-                            <h4>Test Case {index + 1}</h4>
-                            <p><strong>Input:</strong> {testCase.input}</p>
-                            <p><strong>Expected Output:</strong> {testCase.expectedOutput}</p>
-                            {threeExecutionResult[index] && (
-                                <div>
-                                    <h5>Execution Result:</h5>
-                                    {threeExecutionResult[index].error ? (
-                                        <p>Error: {threeExecutionResult[index].error}</p>
-                                    ) : (
-                                        <div>
-                                            <p>Standard Output: {threeExecutionResult[index].standardOutput}</p>
-                                            <p>Executed result: {threeExecutionResult[index].codeOutput}</p>
-                                            <p>Result: {threeExecutionResult[index].isAccepted ? "Accepted" : "Wrong Answer"}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                        </div>
-                    ))}
-                </div>
+                {runMode === 'all' && executionResult && (
+                    <div>
+                        <h4>Submission Result</h4>
+                        {executionResult.isAccepted === true ? (
+                            <p>Accepted</p>
+                        ) : (
+                            <div>
+                                <p>Wrong Answer</p>
+                                    <p>Last Executed Testcase: {executionResult.lastExecutedTestcase}</p>
+                                    <p>Executed Result: {executionResult.executionResult}</p>
+                                    <p>Expected Output: {executionResult.expectedOutput}</p>
+                                    <p>First Variance: {executionResult.firstDiff}</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {runMode === 'firstThree' && (
+                    <div style={{ marginTop: '20px', display: 'flex' }}>
+                        {threeTestCases.map((testCase, index) => (
+                            <div key={index} style={{ marginBottom: '20px' }}>
+                                <h4>Test Case {index + 1}</h4>
+                                <p><strong>Input:</strong> {testCase.input}</p>
+                                <p><strong>Expected Output:</strong> {testCase.expectedOutput}</p>
+                                {threeExecutionResult[index] && (
+                                    <div>
+                                        <h5>Execution Result:</h5>
+                                        {threeExecutionResult[index].error ? (
+                                            <p>Error: {threeExecutionResult[index].error}</p>
+                                        ) : (
+                                            <div>
+                                                <p>Standard Output: {threeExecutionResult[index].standardOutput}</p>
+                                                <p>Executed result: {threeExecutionResult[index].codeOutput}</p>
+                                                <p>Result: {threeExecutionResult[index].isAccepted ? "Accepted" : "Wrong Answer"}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -22,6 +22,7 @@ namespace StreamCoDing.Controllers
         public string CodeOutput { get; set; }
         public string expectedOutput { get; set; }
         public bool isAccepted { get; set; }
+        public string firstDiff { get; set; }
     }
 
     [ApiController]
@@ -136,7 +137,25 @@ namespace StreamCoDing.Controllers
                         executionProcess.Start();
                         string output = executionProcess.StandardOutput.ReadToEnd();
                         res = ParseResVector(output);
-                        var isAccepted = problem.TestCases[input.testCaseIdx].ExpectedOutput == string.Join(",", res); // Assuming res is a vector<int> converted to a string
+                        string joinedres = string.Join(",", res);
+                        var isAccepted = problem.TestCases[input.testCaseIdx].ExpectedOutput == joinedres; // Assuming res is a vector<int> converted to a string
+                        string diffa = "";
+                        string diffb = "";
+                        string diffindex = "";
+                        if (!isAccepted)
+                        {
+                            for (int i=0; i< problem.TestCases[input.testCaseIdx].ExpectedOutput.Length; i++)
+                            {
+                                while (i < problem.TestCases[input.testCaseIdx].ExpectedOutput.Length && (problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != ',' || joinedres[i] != ','))
+                                {
+                                    if (diffindex.Length == 0) diffindex = i.ToString();
+                                    diffa += problem.TestCases[input.testCaseIdx].ExpectedOutput[i];
+                                    diffb += joinedres[i];
+                                    i = problem.TestCases[input.testCaseIdx].ExpectedOutput.Length;
+                                    break;
+                                }
+                            }
+                        }
                         executionProcess.WaitForExit();
                         int returnValue = executionProcess.ExitCode; // Capture return value
 
@@ -149,7 +168,8 @@ namespace StreamCoDing.Controllers
                             ReturnValue = returnValue,
                             CodeOutput = res,
                             expectedOutput = problem.TestCases[input.testCaseIdx].ExpectedOutput,
-                            isAccepted = isAccepted
+                            isAccepted = isAccepted,
+                            firstDiff = "expected: " + diffa + "," + "result: " + diffb + ", index " + diffindex
                         };
 
                         return executionResult;

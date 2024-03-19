@@ -72,7 +72,8 @@ namespace StreamCoDing.Controllers
                 Name = itemDto.Name,
                 Type = itemDto.Type,
                 Description = itemDto.Description,
-                Number = itemDto.Number
+                Number = itemDto.Number,
+                TestCases = itemDto.TestCases
             };
             await repository.UpdateItemAsync(updatedItem);
             return NoContent();
