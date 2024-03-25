@@ -146,9 +146,10 @@ namespace StreamCoDing.Controllers
                         {
                             for (int i=0; i< problem.TestCases[input.testCaseIdx].ExpectedOutput.Length; i++)
                             {
-                                while (i < problem.TestCases[input.testCaseIdx].ExpectedOutput.Length && (problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != ',' || joinedres[i] != ','))
+                                if (i < problem.TestCases[input.testCaseIdx].ExpectedOutput.Length && (problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != ',' || joinedres[i] != ',')
+                                && problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != joinedres[i])
                                 {
-                                    if (diffindex.Length == 0) diffindex = i.ToString();
+                                    diffindex = i.ToString();
                                     diffa += problem.TestCases[input.testCaseIdx].ExpectedOutput[i];
                                     diffb += joinedres[i];
                                     i = problem.TestCases[input.testCaseIdx].ExpectedOutput.Length;
