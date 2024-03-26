@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Remove="ClientApp\src\components\Problems.razor" />
+    <None Remove="primenumber.txt" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

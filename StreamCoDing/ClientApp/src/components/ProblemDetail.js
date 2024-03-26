@@ -12,6 +12,7 @@ function ProblemDetail() {
     const [threeExecutionResult, setThreeExecutionResult] = useState(Array(3).fill(null));
     const [threeTestCases, setThreeTestCases] = useState([]);
     const [runMode, setRunMode] = useState('all'); // 'all' or 'firstThree'
+    const [runtime, setRuntime] = useState(0);
 
     const handleCodeChange = (event) => {
         setCppCode(event.target.value);
@@ -72,6 +73,7 @@ function ProblemDetail() {
         setRunMode('all');
         setLoading(true);
         try {
+            var t = 0;
             for (const [index, testCase] of testCases.entries()) {
                 try {
                     let modifiedCode = cppCode.replace(/inputParameter/g, testCase.input);
@@ -86,6 +88,14 @@ function ProblemDetail() {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     const data = await response.json();
+                    console.log(data);
+                  
+                    if (parseInt(data.runtimeMilliseconds) > 250) {
+                        console.log(parseInt(data.runtimeMilliseconds));
+                        setExecutionResult({ Result: "Time Limit Exceed", isAccepted: false, lastExecutedTestcase: testCase.input });
+                        return;
+                    }
+                    t += data.runtimeMilliseconds;
                     if (data.isAccepted === false) {
                         setExecutionResult({ Result: "Wrong Answer", isAccepted: false, lastExecutedTestcase: testCase.input, executionResult: data.codeOutput, expectedOutput: data.expectedOutput, firstDiff: data.firstDiff });
                         /*for debugging
@@ -105,9 +115,11 @@ function ProblemDetail() {
                     } else {
                         setExecutionResult({ error: error.message, isAccepted: false });
                     }
+                    return;
                 }
             }
             setExecutionResult({ Result: "Accepted", isAccepted: true });
+            setRuntime(t);
         } catch (error) {
             console.error('Error executing test cases:', error);
         } finally {
@@ -136,7 +148,11 @@ function ProblemDetail() {
                     <div>
                         <h4>Submission Result</h4>
                         {executionResult.isAccepted === true ? (
-                            <p>Accepted</p>
+                            <div>
+                                <p>Accepted</p>
+                                <p> Runtime: {runtime} ms </p>
+                            </div>
+
                         ) : (
                             <div>
                                 <p>Wrong Answer</p>
@@ -204,6 +220,38 @@ int main() {
         }
     }
     
+    // Print the res vector elements separated by commas
+    for (int i = 0; i < res.size(); ++i) {
+        std::cout << res[i];
+        if (i < res.size() - 1) {
+            std::cout << ",";
+        }
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}
+
+tle code
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    int n = inputParameter;
+    vector<int> res;
+    for (int num = 2; num <= n; ++num) {
+        bool is_prime = true;
+        for (int i = 2; i * i <= num; ++i) {
+            if (num % i == 0) {
+                is_prime = false;
+                break;
+            }
+        }
+        if (is_prime) {
+           res.push_back(num);
+        }
+    }
     // Print the res vector elements separated by commas
     for (int i = 0; i < res.size(); ++i) {
         std::cout << res[i];

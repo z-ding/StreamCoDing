@@ -23,6 +23,7 @@ namespace StreamCoDing.Controllers
         public string expectedOutput { get; set; }
         public bool isAccepted { get; set; }
         public string firstDiff { get; set; }
+        public long RuntimeMilliseconds { get; set; } // Property to hold the runtime in milliseconds
     }
 
     [ApiController]
@@ -89,7 +90,7 @@ namespace StreamCoDing.Controllers
             }
             var problem = await repository.GetItemAsync(problemGuid);
             try
-            {             
+            {
                 if (input == null || string.IsNullOrWhiteSpace(input.CppCode))
                 {
                     return BadRequest("No valid C++ code provided.");
@@ -134,8 +135,10 @@ namespace StreamCoDing.Controllers
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
                     var executionTask = Task.Run(() =>
                     {
-                        executionProcess.Start();
+                        Stopwatch stopwatch = Stopwatch.StartNew();
+                        executionProcess.Start();                       
                         string output = executionProcess.StandardOutput.ReadToEnd();
+                        stopwatch.Stop();
                         res = ParseResVector(output);
                         string joinedres = string.Join(",", res);
                         var isAccepted = problem.TestCases[input.testCaseIdx].ExpectedOutput == joinedres; // Assuming res is a vector<int> converted to a string
@@ -144,7 +147,7 @@ namespace StreamCoDing.Controllers
                         string diffindex = "";
                         if (!isAccepted)
                         {
-                            for (int i=0; i< problem.TestCases[input.testCaseIdx].ExpectedOutput.Length; i++)
+                            for (int i = 0; i < problem.TestCases[input.testCaseIdx].ExpectedOutput.Length; i++)
                             {
                                 if (i < problem.TestCases[input.testCaseIdx].ExpectedOutput.Length && (problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != ',' || joinedres[i] != ',')
                                 && problem.TestCases[input.testCaseIdx].ExpectedOutput[i] != joinedres[i])
@@ -159,7 +162,7 @@ namespace StreamCoDing.Controllers
                         }
                         executionProcess.WaitForExit();
                         int returnValue = executionProcess.ExitCode; // Capture return value
-
+                        
                         // Clean up temporary files
                         System.IO.File.Delete(tempFile);
                         System.IO.File.Delete(executableFile);
@@ -170,7 +173,8 @@ namespace StreamCoDing.Controllers
                             CodeOutput = res,
                             expectedOutput = problem.TestCases[input.testCaseIdx].ExpectedOutput,
                             isAccepted = isAccepted,
-                            firstDiff = "expected: " + diffa + "," + "result: " + diffb + ", index " + diffindex
+                            firstDiff = "expected: " + diffa + "," + "result: " + diffb + ", index " + diffindex,
+                            RuntimeMilliseconds = stopwatch.ElapsedMilliseconds // Include runtime information
                         };
 
                         return executionResult;
