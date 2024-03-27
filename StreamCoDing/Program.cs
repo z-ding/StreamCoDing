@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using StreamCoDing.Repositories;
 using StreamCoDing.Settings;
 using StreamCoDing.Controllers;
+using StreamCoDing.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +21,15 @@ builder.Services.AddSingleton<CppController>();
 builder.Services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
 builder.Services.AddSingleton<IPeopleRepository, MongoDbPeopleRepository>();
 //builder.Services.AddSingleton<IItemsRepository, InMemItemsRepository>();
+builder.Services.AddSignalR();
 var app = builder.Build();
 
 app.UseCors(policy =>
 {
-    policy.AllowAnyOrigin()
+    policy.WithOrigins("https://localhost:44420")
           .AllowAnyMethod()
-          .AllowAnyHeader();
+          .AllowAnyHeader()
+          .AllowCredentials();
 });
 
 // Configure the HTTP request pipeline.
@@ -45,6 +48,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
+app.MapHub<ChatHub>("/chatHub");//map the chathub to the endpoint
 app.MapFallbackToFile("index.html"); ;
 
 app.Run();

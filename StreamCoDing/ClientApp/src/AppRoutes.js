@@ -3,6 +3,7 @@ import  FetchData  from "./components/FetchData";
 import Home from "./components/Home";
 import ProblemDetail from "./components/ProblemDetail"; // Import ProblemDetail component
 import PeopleDetail from "./components/PeopleDetail"; // Import ProblemDetail component
+import Chat from "./components/Chat";
 
 const AppRoutes = [
     {
@@ -29,6 +30,11 @@ const AppRoutes = [
         key: 'people-detail',
         path: '/people/:id', // Define route for problem details
         element: <PeopleDetail />
+    },
+    {
+        key: 'chatroom-public',
+        path: '/chatroompublic', // Define route for problem details
+        element: <Chat />
     }
 ];
 

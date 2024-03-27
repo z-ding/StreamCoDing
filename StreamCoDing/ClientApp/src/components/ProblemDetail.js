@@ -88,7 +88,7 @@ function ProblemDetail() {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     const data = await response.json();
-                    console.log(data);
+                    //console.log(data);
                   
                     if (parseInt(data.runtimeMilliseconds) > 250) {
                         console.log(parseInt(data.runtimeMilliseconds));
