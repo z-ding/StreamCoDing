@@ -7,15 +7,19 @@ const Chat = () => {
     const [messageInput, setMessageInput] = useState('');
     const [nickname, setNickname] = useState('');
     const [nicknameSet, setNicknameSet] = useState(false);
+    const [userCount, setUserCount] = useState(0);
 
     useEffect(() => {
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:7011/chatHub')
-            .withAutomaticReconnect()
-            .build();
+        if (nicknameSet) {
+            const newConnection = new signalR.HubConnectionBuilder()
+                .withUrl('https://localhost:7011/chatHub', { accessTokenFactory: () => nickname })// Pass the nickname
+                .withAutomaticReconnect()
+                .build();
 
-        setConnection(newConnection);
-    }, []);
+            setConnection(newConnection);
+        }
+
+    }, [nicknameSet]);
 
 
     useEffect(() => {
@@ -26,6 +30,10 @@ const Chat = () => {
 
             connection.on('ReceiveMessage', (message) => {
                 setMessages(prevMessages => [...prevMessages, message]);
+            });
+
+            connection.on('UserCountUpdated', (count) => {
+                setUserCount(count);
             });
         }
     }, [connection]);
@@ -47,6 +55,7 @@ const Chat = () => {
 
     return (
         <div>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>Users connected: {userCount}</div>
             {!nicknameSet &&
                 <div>
                     <input
