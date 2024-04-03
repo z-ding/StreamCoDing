@@ -1,58 +1,46 @@
 ﻿import React, { useState, useEffect } from 'react';
 import * as signalR from '@microsoft/signalr';
 
-const Chat = ({ roomId }) => {
+const Chat = () => {
     const [connection, setConnection] = useState(null);
     const [messages, setMessages] = useState([]);
     const [messageInput, setMessageInput] = useState('');
     const [nickname, setNickname] = useState('');
     const [nicknameSet, setNicknameSet] = useState(false);
     const [userCount, setUserCount] = useState(0);
-    console.log(roomId)
-    if (roomId == null) roomId = "public";
+
     useEffect(() => {
         if (nicknameSet) {
             const newConnection = new signalR.HubConnectionBuilder()
-                .withUrl('https://localhost:7011/chatHub', { accessTokenFactory: () => nickname })
+                .withUrl('https://localhost:7011/chatHub', { accessTokenFactory: () => nickname })// Pass the nickname
                 .withAutomaticReconnect()
                 .build();
 
-            newConnection
-                .start()
-                .then(() => {
-                    console.log('Connected to Hub');
-                    setConnection(newConnection);
-                    // Join the chat room
-                    newConnection.invoke('JoinRoom', roomId);
-                })
+            setConnection(newConnection);
+        }
+
+    }, [nicknameSet]);
+
+
+    useEffect(() => {
+        if (connection) {
+            connection.start()
+                .then(() => console.log('Connected to Hub'))
                 .catch(err => console.error('Error connecting to Hub:', err));
 
-            newConnection.on('ReceiveMessageInRoom', (message) => {
+            connection.on('ReceiveMessage', (message) => {
                 setMessages(prevMessages => [...prevMessages, message]);
             });
 
-            newConnection.on('UserCountInRoomUpdated', (count) => {
+            connection.on('UserCountUpdated', (count) => {
                 setUserCount(count);
             });
-
-            // Add an event listener for beforeunload;
-            // Add an event listener for unload (redirection within the page)
-            window.addEventListener('unload', () => {
-                newConnection.invoke('LeaveRoom', roomId);
-            });
-
-            return () => {
-                // Remove the event listeners when the component unmounts
-                window.removeEventListener('unload', () => {
-                    newConnection.invoke('LeaveRoom', roomId);
-                });
-            };
         }
-    }, [nicknameSet, roomId]);
+    }, [connection]);
 
-    const sendMessageInRoom = async () => {
+    const sendMessage = async () => {
         if (connection && messageInput.trim() !== '') {
-            await connection.send('SendMessageInRoom', roomId, nickname, messageInput);
+            await connection.send('SendMessage', nickname, messageInput);
             setMessageInput('');
         }
     };
@@ -99,7 +87,7 @@ const Chat = ({ roomId }) => {
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                     />
-                    <button onClick={sendMessageInRoom}>Send</button>
+                    <button onClick={sendMessage}>Send</button>
                 </div>
             }
         </div>

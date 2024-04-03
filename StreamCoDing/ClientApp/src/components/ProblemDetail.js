@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import Chat from './Chat'; // Import the Chat component
 
 function ProblemDetail() {
     const { id } = useParams();
@@ -134,6 +135,7 @@ function ProblemDetail() {
                 <p>{problem && problem.description}</p>
                 {/* Render other details of the problem */}
             </div>
+            <Chat roomId={id} />
             <div style={{ flex: 2 }}>
                 <textarea
                     value={cppCode}
