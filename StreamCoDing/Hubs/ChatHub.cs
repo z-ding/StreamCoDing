@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace StreamCoDing.Hubs
@@ -6,7 +7,7 @@ namespace StreamCoDing.Hubs
     public class ChatHub : Hub
     {
         private static int _userCountttl = 0;//ttl user connected
-        private static Dictionary<string, int> _userCounts = new Dictionary<string, int>();//user count in each chat room
+        private static Dictionary<string, HashSet<String>> _userCounts = new Dictionary<string, HashSet<String>>();//user  in each chat room
 
         //total server
         public override async Task OnConnectedAsync()
@@ -33,24 +34,23 @@ namespace StreamCoDing.Hubs
         //chat room functions
         public async Task JoinRoom(string roomId)
         {
+            string nickname = Context.GetHttpContext().Request.Query["access_token"];
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             if (!_userCounts.ContainsKey(roomId))
             {
-                _userCounts[roomId] = 1;
+                _userCounts.Add(roomId, new HashSet<String>());
             }
-            else
-            {
-                _userCounts[roomId]++;
-            }
-            await Clients.Group(roomId).SendAsync("UserCountInRoomUpdated", _userCounts[roomId]);
-            Console.Write(_userCounts[roomId]);
+            _userCounts[roomId].Add(Context.ConnectionId);
+            await Clients.Group(roomId).SendAsync("UserCountInRoomUpdated", _userCounts[roomId].Count);
+            await Clients.Group(roomId).SendAsync("ReceiveMessageInRoom", $"broadcasting message:::<<>>::: {nickname} has joined");
         }
         public async Task LeaveRoom(string roomId)
         {
+            string nickname = Context.GetHttpContext().Request.Query["access_token"];
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
-            _userCounts[roomId]--;
-            await Clients.Group(roomId).SendAsync("UserCountInRoomUpdated", _userCounts[roomId]);
-            Console.Write(_userCounts[roomId]);
+            _userCounts[roomId].Remove(Context.ConnectionId);
+            await Clients.Group(roomId).SendAsync("UserCountInRoomUpdated", _userCounts[roomId].Count);
+            await Clients.Group(roomId).SendAsync("ReceiveMessageInRoom", $"broadcasting message:::<<>>::: {nickname} has left");
         }
 
         public async Task SendMessageInRoom(string roomId, string user, string message)

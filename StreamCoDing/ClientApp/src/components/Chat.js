@@ -82,14 +82,14 @@ const Chat = ({ roomId }) => {
                 <div>
                     <div>
                         {messages
-                            .filter(message => message.includes('has joined'))
+                            .filter(message => message.includes('broadcasting message:::<<>>:::'))
                             .map((message, index) => (
-                                <div key={index}>{message}</div>
+                                <div key={index}>{message.substring(31)}</div>
                             ))}
                     </div>
                     <div>
                         {messages
-                            .filter(message => !message.includes('has joined'))
+                            .filter(message => !message.includes('broadcasting message:::<<>>:::'))
                             .map((message, index) => (
                                 <div key={index}>{message}</div>
                             ))}
