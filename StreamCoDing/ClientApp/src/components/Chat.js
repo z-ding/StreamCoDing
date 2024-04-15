@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 
 const Chat = ({ roomId }) => {
@@ -8,6 +8,9 @@ const Chat = ({ roomId }) => {
     const [nickname, setNickname] = useState('');
     const [nicknameSet, setNicknameSet] = useState(false);
     const [userCount, setUserCount] = useState(0);
+    const [screenSharingActive, setScreenSharingActive] = useState(false); // New state to track screen sharing
+    const videoRef = useRef(null);
+
     console.log(roomId)
     if (roomId == null) roomId = "public";
     useEffect(() => {
@@ -64,6 +67,26 @@ const Chat = ({ roomId }) => {
     const setNicknameAndDisableInput = () => {
         setNicknameSet(true);
     };
+    // Function to start screen sharing
+    const startScreenSharing = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            connection.invoke('StartScreenSharing', roomId);
+            connection.invoke('SendScreenStream', roomId, stream);
+            setScreenSharingActive(true);
+            // Set the video element source to the screen stream
+            if (videoRef.current) {
+                videoRef.current.srcObject = new MediaStream(stream);
+            }
+        } catch (error) {
+            console.error('Error starting screen sharing:', error);
+        }
+    };
+
+    const stopScreenSharing = async () => {
+        connection.invoke('StopScreenSharing', roomId);
+        setScreenSharingActive(false);
+    };
 
     return (
         <div>
@@ -80,6 +103,11 @@ const Chat = ({ roomId }) => {
             }
             {nicknameSet &&
                 <div>
+                    {screenSharingActive ? (
+                        <button onClick={stopScreenSharing}>Stop Screen Sharing</button>
+                    ) : (
+                        <button onClick={startScreenSharing}>Start Screen Sharing</button>
+                    )}
                     <div>
                         {messages
                             .filter(message => message.includes('broadcasting message:::<<>>:::'))
@@ -102,8 +130,13 @@ const Chat = ({ roomId }) => {
                     <button onClick={sendMessageInRoom}>Send</button>
                 </div>
             }
+            {/* Video element to display the screen sharing stream */}
+            <div>
+                <video ref={videoRef} autoPlay controls />
+            </div>
         </div>
     );
 };
+
 
 export default Chat;
