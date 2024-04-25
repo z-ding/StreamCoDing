@@ -6,9 +6,15 @@ using StreamCoDing.Repositories;
 using StreamCoDing.Settings;
 using StreamCoDing.Controllers;
 using StreamCoDing.Hubs;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 100000000000; // or specify a maximum size in bytes
+});
 // Add services to the container.
 BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));

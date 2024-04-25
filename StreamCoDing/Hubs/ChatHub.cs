@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNet.SignalR.Messaging;
+using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -62,20 +64,33 @@ namespace StreamCoDing.Hubs
         public async Task StartScreenSharing(string roomId)
         {
             string nickname = Context.GetHttpContext().Request.Query["access_token"];
-            await Clients.Group(roomId).SendAsync("ReceiveScreenSharingStart", $"{nickname} has started screen sharing");
+            await Clients.Group(roomId).SendAsync("ReceiveMessageInRoom", $"broadcasting message:::<<>>::: {nickname} has started screen sharing");
         }
         // Method to stop screen sharing
         public async Task StopScreenSharing(string roomId)
         {
             string nickname = Context.GetHttpContext().Request.Query["access_token"];
-            await Clients.Group(roomId).SendAsync("ReceiveScreenSharingStop", $"{nickname} has stopped screen sharing");
+            await Clients.Group(roomId).SendAsync("ReceiveMessageInRoom", $"broadcasting message:::<<>>::: {nickname} has stopped screen sharing");
         }
 
         // Method to receive screen sharing stream
-        public async Task SendScreenStream(string roomId, byte[] screenStream)
+        public async Task SendScreenStream(string roomId, string stream)
         {
-            _screenStreams[roomId] = screenStream; // Store the screen stream for future users
-            await Clients.Group(roomId).SendAsync("ReceiveScreenStream", screenStream); // Broadcast the screen stream to all users in the room
+            try
+            {
+                // Store the screen stream for future users
+                //_screenStreams[roomId] = screenStream;
+
+                // Broadcast the screen stream to all users in the room
+
+                await Clients.Group(roomId).SendAsync("ReceiveScreenStream", stream);
+                Console.WriteLine("receive successfully");
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions (e.g., log the error)
+                Console.WriteLine($"Error in SendScreenStream: {ex.Message}");
+            }
         }
     }
 }
